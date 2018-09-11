@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Snake Game Project</title>
+  <style>
+  html, body {
+    margin: 0;
+    height: 90%;
+  }
+  canvas {
+    border: 3px solid white;
+  }
+  body {
+    align-items: center;
+    justify-content: center;
+    background: darkslategray;
+    display: flex;
+  }
+  </style>
+</head>
+<body>
+<canvas width="400" height="400" id="snakegame"></canvas>
+<script>
+var canvas = document.getElementById('snakegame');
+var context = canvas.getContext('2d');
+var gridsquare = 16;
+var snake = {
+  x: 160, // start place for snake
+  y: 160,
+  changeInX: gridsquare,
+  changeInY: 0,
+  cells: [],
+  maxCellsAllocated: 4
+};
+var count = 0;
+var banana = {
+  x: 320,   //start place for banana
+  y: 320
+};
+function randomInt(min, max) {
+  return Math.floor(Math.random() * (max - min)) + min; //random integer for next banana
+}
+// game loop
+function loop() {
+  requestAnimationFrame(loop);
+  // slow game loop to 15 fps instead of 60 - 60/15 = 4
+   if (++count < 4) {
+   return;
+  }
+  count = 0;
+  context.clearRect(0,0,canvas.width,canvas.height);
+  snake.x += snake.changeInX; //updates snake's position
+  snake.y += snake.changeInY;
+  // moves snake to opposite end of screen if it falls out
+  if (snake.x < 0) {
+    snake.x = canvas.width - gridsquare;
+  }
+  else if (snake.x >= canvas.width) {
+    snake.x = 0;
+  }
+  if (snake.y < 0) {
+    snake.y = canvas.height - gridsquare;
+  }
+  else if (snake.y >= canvas.height) {
+    snake.y = 0;
+  }
+  // keep track of where snake has been. front of the array is always the head
+  snake.cells.unshift({x: snake.x, y: snake.y});
+  // remove cells as we move away from them
+  if (snake.cells.length > snake.maxCellsAllocated) {
+    snake.cells.pop();
+  }
+  // draw banana
+  context.fillStyle = 'yellow';
+  context.fillRect(banana.x, banana.y, gridsquare-1, gridsquare-1);
+  // draw snake
+  context.fillStyle = 'blue';
+  snake.cells.forEach(function(cell, index) {
+    context.fillRect(cell.x, cell.y, gridsquare-1, gridsquare-1);
+    // snake ate banana. FInd new random location.
+    if (cell.x === banana.x && cell.y === banana.y) {
+      snake.maxCellsAllocated++;
+      banana.x = randomInt(0, 25) * gridsquare;
+      banana.y = randomInt(0, 25) * gridsquare;
+    }
+    // check every cell for collision
+    for (var i = index + 1; i < snake.cells.length; i++) {
+      
+      // collision. reset game
+      if (cell.x === snake.cells[i].x && cell.y === snake.cells[i].y) {
+        snake.x = 160;
+        snake.y = 160;
+        snake.cells = [];
+        snake.maxCellsAllocated = 4;
+        snake.changeInX = gridsquare;
+        snake.changeInY = 0;
+        banana.x = randomInt(0, 25) * gridsquare;
+        banana.y = randomInt(0, 25) * gridsquare;
+      }
+    }
+  });
+}
+document.addEventListener('keydown', function(keypress) {
+  // prevents snake from going backwards
+  if (keypress.which === 37 && snake.changeInX === 0) {
+    snake.changeInX = -gridsquare;
+    snake.changeInY = 0;
+  }
+  else if (keypress.which === 38 && snake.changeInY === 0) {
+    snake.changeInY = -gridsquare;
+    snake.changeInX = 0;
+  }
+  else if (keypress.which === 39 && snake.changeInX === 0) {
+    snake.changeInX = gridsquare;
+    snake.changeInY = 0;
+  }
+  else if (keypress.which === 40 && snake.changeInY === 0) {
+    snake.changeInY = gridsquare;
+    snake.changeInX = 0;
+  }
+});
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
